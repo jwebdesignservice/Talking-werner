@@ -103,9 +103,13 @@ export default function WernerPortrait() {
 
     useWernerEvents(handleWernerEvent);
 
+    // Check if any operation is in progress (prevents API credit abuse)
+    const isBusy = isThinking || voiceState.isLoading || isTalking;
+
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!inputValue.trim() || isThinking) return;
+        // Block submissions while any operation is in progress
+        if (!inputValue.trim() || isThinking || voiceState.isLoading || isTalking) return;
 
         setIsThinking(true);
         setResponse("");
@@ -138,7 +142,7 @@ export default function WernerPortrait() {
         } finally {
             setInputValue("");
         }
-    }, [inputValue, isThinking, generateAndPlay]);
+    }, [inputValue, isThinking, voiceState.isLoading, isTalking, generateAndPlay]);
 
     return (
         <div className="animate-fade-in animate-delay-2 h-full relative">
