@@ -17,6 +17,9 @@ export default function WernerPortrait() {
     const hasFinishedTyping = useRef(false);
     const pendingResponse = useRef<string>("");
 
+    // Track busy state for transaction events - use ref to avoid stale closures
+    const isBusyRef = useRef(false);
+
     useEffect(() => {
         // When isTalking starts, begin the typewriter animation
         if (isTalking && pendingResponse.current) {
@@ -60,6 +63,7 @@ export default function WernerPortrait() {
         onStart: () => {
             console.log("🎬 WernerPortrait: onStart callback triggered - showing GIF");
             setIsTalking(true);
+            isBusyRef.current = true; // Mark as busy
             // Force GIF to restart by resetting src
             if (gifRef.current) {
                 console.log("🎬 Restarting GIF animation");
@@ -73,10 +77,12 @@ export default function WernerPortrait() {
         onEnd: () => {
             console.log("🎬 WernerPortrait: onEnd callback triggered - hiding GIF");
             setIsTalking(false);
+            isBusyRef.current = false; // No longer busy - ready for next transaction
         },
         onError: (error) => {
             console.error("🎬 WernerPortrait: onError callback triggered:", error);
             setIsTalking(false);
+            isBusyRef.current = false; // No longer busy on error
         },
     });
 
@@ -86,6 +92,17 @@ export default function WernerPortrait() {
     // Listen for SSE events from Solana transactions
     const handleWernerEvent = useCallback((event: WernerEventData) => {
         if (event.type === "response" && event.data.responseText) {
+            // Ignore transaction events while Werner is busy speaking or processing
+            if (isBusyRef.current) {
+                console.log("🚫 Ignoring transaction event - Werner is busy speaking");
+                return;
+            }
+
+            // Mark as busy immediately to prevent race conditions
+            isBusyRef.current = true;
+
+            // Store the response for typewriter animation
+            pendingResponse.current = event.data.responseText;
             setResponse(event.data.responseText);
             setLastTransaction({
                 amount: event.data.solAmount || 0,
@@ -111,6 +128,8 @@ export default function WernerPortrait() {
         // Block submissions while any operation is in progress
         if (!inputValue.trim() || isThinking || voiceState.isLoading || isTalking) return;
 
+        // Mark as busy to ignore incoming transaction events
+        isBusyRef.current = true;
         setIsThinking(true);
         setResponse("");
         setDisplayedText("");
