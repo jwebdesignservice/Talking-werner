@@ -3,59 +3,48 @@
 import { useEffect, useRef } from "react";
 
 interface UseTransactionPollerOptions {
-  interval?: number; // Polling interval in milliseconds
-  enabled?: boolean;
+    interval?: number;
+    enabled?: boolean;
 }
 
-export function useTransactionPoller({
-  interval = 10000, // Default: poll every 10 seconds
-  enabled = true,
-}: UseTransactionPollerOptions = {}) {
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+export function useTransactionPoller(options: UseTransactionPollerOptions = {}) {
+    const { interval = 10000, enabled = true } = options;
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (!enabled) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      return;
-    }
-
-    const pollTransactions = async () => {
-      try {
-        const response = await fetch("/api/transactions/poll");
-        const data = await response.json();
-        
-        // 503 means API not configured yet - silently ignore
-        if (response.status === 503) {
-          return;
+    useEffect(() => {
+        if (!enabled) {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+            return;
         }
-        
-        if (!response.ok) {
-          console.error("Polling failed:", response.status, data.error);
-          return;
-        }
-        
-        if (data.processed > 0) {
-          console.log(`🎬 Processed ${data.processed} new qualifying transactions`);
-        }
-      } catch (error) {
-        // Network errors - silently ignore to avoid console spam
-      }
-    };
 
-    // Initial poll
-    pollTransactions();
+        const poll = async () => {
+            try {
+                const response = await fetch("/api/transactions/poll");
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.processed > 0) {
+                        console.log(`📊 Polled: ${data.processed} processed, ${data.skipped || 0} skipped`);
+                    }
+                }
+            } catch (error) {
+                console.error("Poll error:", error);
+            }
+        };
 
-    // Set up interval
-    intervalRef.current = setInterval(pollTransactions, interval);
+        // Initial poll
+        poll();
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [interval, enabled]);
+        // Set up interval
+        intervalRef.current = setInterval(poll, interval);
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
+    }, [interval, enabled]);
 }

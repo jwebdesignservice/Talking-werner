@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useVoicePlayer, useWernerEvents, WernerEventData } from "@/hooks/useVoicePlayer";
 import { useTransactionPoller } from "@/hooks/useTransactionPoller";
+import { useWernerBusy } from "@/contexts/WernerContext";
 
 export default function WernerPortrait() {
     const [inputValue, setInputValue] = useState("");
@@ -12,200 +13,205 @@ export default function WernerPortrait() {
     const [isTalking, setIsTalking] = useState(false);
     const [lastTransaction, setLastTransaction] = useState<{ amount: number; wallet: string } | null>(null);
 
-    // Typewriter effect for response text
+    // Shared busy state
+    const { setIsBusy } = useWernerBusy();
+
+    // Refs
     const typewriterRef = useRef<NodeJS.Timeout | null>(null);
-    const hasFinishedTyping = useRef(false);
     const pendingResponse = useRef<string>("");
-
-    // Track busy state for transaction events - use ref to avoid stale closures
+    const gifRef = useRef<HTMLImageElement>(null);
     const isBusyRef = useRef(false);
+    const processedEventsRef = useRef<Set<string>>(new Set());
+    const lastEventTimeRef = useRef<number>(0);
 
+    // Update shared busy state
     useEffect(() => {
-        // When isTalking starts, begin the typewriter animation
+        setIsBusy(isThinking || isTalking);
+    }, [isThinking, isTalking, setIsBusy]);
+
+    // Typewriter effect
+    useEffect(() => {
         if (isTalking && pendingResponse.current) {
-            // Clear any existing interval
-            if (typewriterRef.current) {
-                clearInterval(typewriterRef.current);
-            }
+            if (typewriterRef.current) clearInterval(typewriterRef.current);
 
-            const textToType = pendingResponse.current;
-            setDisplayedText(""); // Start empty
-            hasFinishedTyping.current = false;
+            const text = pendingResponse.current;
+            setDisplayedText("");
+            let i = 0;
 
-            let currentIndex = 0;
             typewriterRef.current = setInterval(() => {
-                if (currentIndex < textToType.length) {
-                    setDisplayedText(textToType.slice(0, currentIndex + 1));
-                    currentIndex++;
+                if (i < text.length) {
+                    setDisplayedText(text.slice(0, i + 1));
+                    i++;
                 } else {
-                    if (typewriterRef.current) {
-                        clearInterval(typewriterRef.current);
-                        typewriterRef.current = null;
-                    }
-                    hasFinishedTyping.current = true;
+                    if (typewriterRef.current) clearInterval(typewriterRef.current);
                 }
             }, 50);
         }
 
         return () => {
-            if (typewriterRef.current) {
-                clearInterval(typewriterRef.current);
-                typewriterRef.current = null;
-            }
+            if (typewriterRef.current) clearInterval(typewriterRef.current);
         };
     }, [isTalking]);
 
-    // Use ref to track GIF element for animation reset
-    const gifRef = useRef<HTMLImageElement>(null);
-
-    // Voice player with callbacks for synchronization
+    // Voice player
     const { state: voiceState, play, generateAndPlay } = useVoicePlayer({
         onStart: () => {
-            console.log("🎬 WernerPortrait: onStart callback triggered - showing GIF");
+            console.log("🎬 Voice started - showing GIF");
             setIsTalking(true);
-            isBusyRef.current = true; // Mark as busy
-            // Force GIF to restart by resetting src
+            // Restart GIF
             if (gifRef.current) {
-                console.log("🎬 Restarting GIF animation");
                 const src = gifRef.current.src;
                 gifRef.current.src = "";
-                setTimeout(() => {
-                    if (gifRef.current) gifRef.current.src = src;
-                }, 10);
+                setTimeout(() => { if (gifRef.current) gifRef.current.src = src; }, 10);
             }
         },
         onEnd: () => {
-            console.log("🎬 WernerPortrait: onEnd callback triggered - hiding GIF");
+            console.log("🎬 Voice ended - hiding GIF");
             setIsTalking(false);
-            isBusyRef.current = false; // No longer busy - ready for next transaction
-        },
-        onError: (error) => {
-            console.error("🎬 WernerPortrait: onError callback triggered:", error);
-            setIsTalking(false);
-            isBusyRef.current = false; // No longer busy on error
+            isBusyRef.current = false;
         },
     });
 
-    // Poll Birdeye for transactions every 10 seconds
-    useTransactionPoller({ interval: 10000, enabled: true });
+    // Poll for transactions (pause while busy)
+    const isBusy = isThinking || voiceState.isLoading || isTalking;
 
-    // Listen for SSE events from Solana transactions
+    // Keep ref in sync with state
+    useEffect(() => {
+        isBusyRef.current = isBusy;
+    }, [isBusy]);
+
+    useTransactionPoller({ interval: 10000, enabled: !isBusy });
+
+    // Handle SSE events
     const handleWernerEvent = useCallback((event: WernerEventData) => {
-        if (event.type === "response" && event.data.responseText) {
-            // Ignore transaction events while Werner is busy speaking or processing
-            if (isBusyRef.current) {
-                console.log("🚫 Ignoring transaction event - Werner is busy speaking");
-                return;
-            }
+        if (!event.data?.responseText) return;
 
-            // Mark as busy immediately to prevent race conditions
-            isBusyRef.current = true;
+        // Create unique fingerprint for this event
+        const eventId = `${event.data.timestamp}-${event.data.walletAddress}-${event.data.solAmount}`;
 
-            // Store the response for typewriter animation
-            pendingResponse.current = event.data.responseText;
-            setResponse(event.data.responseText);
-            setLastTransaction({
-                amount: event.data.solAmount || 0,
-                wallet: event.data.walletAddress || "unknown",
-            });
+        // Skip duplicate events
+        if (processedEventsRef.current.has(eventId)) {
+            console.log("🚫 Duplicate event, skipping");
+            return;
+        }
 
-            // Play the audio if available
-            if (event.data.audioUrl) {
-                play(event.data.audioUrl);
-            } else {
-                generateAndPlay(event.data.responseText);
-            }
+        // Skip if event is too close to the last one (within 5 seconds)
+        const now = Date.now();
+        if (now - lastEventTimeRef.current < 5000) {
+            console.log("🚫 Event too soon after last one, skipping");
+            return;
+        }
+
+        // Skip if busy (use ref to avoid stale closure)
+        if (isBusyRef.current) {
+            console.log("🚫 Skipping - Werner is busy");
+            return;
+        }
+
+        // Mark as processed and busy
+        processedEventsRef.current.add(eventId);
+        lastEventTimeRef.current = now;
+        isBusyRef.current = true;
+
+        // Keep set small
+        if (processedEventsRef.current.size > 50) {
+            const entries = Array.from(processedEventsRef.current);
+            entries.slice(0, 25).forEach(e => processedEventsRef.current.delete(e));
+        }
+
+        console.log("✅ Playing:", event.data.solAmount?.toFixed(2), "SOL");
+
+        pendingResponse.current = event.data.responseText;
+        setResponse(event.data.responseText);
+        setLastTransaction({
+            amount: event.data.solAmount || 0,
+            wallet: event.data.walletAddress || "unknown",
+        });
+
+        if (event.data.audioUrl) {
+            play(event.data.audioUrl);
+        } else {
+            generateAndPlay(event.data.responseText);
         }
     }, [play, generateAndPlay]);
 
     useWernerEvents(handleWernerEvent);
 
-    // Check if any operation is in progress (prevents API credit abuse)
-    const isBusy = isThinking || voiceState.isLoading || isTalking;
-
+    // Handle user input
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        // Block submissions while any operation is in progress
-        if (!inputValue.trim() || isThinking || voiceState.isLoading || isTalking) return;
+        if (!inputValue.trim() || isBusy) return;
 
-        // Mark as busy to ignore incoming transaction events
-        isBusyRef.current = true;
         setIsThinking(true);
         setResponse("");
         setDisplayedText("");
         pendingResponse.current = "";
-        setIsTalking(false);
 
         try {
-            // Call the chat API for an intelligent response
-            const chatResponse = await fetch("/api/chat", {
+            const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: inputValue }),
             });
 
-            const data = await chatResponse.json();
-            const responseText = data.text || "The void offers no response today.";
+            const data = await res.json();
+            const text = data.text || "The void offers no response.";
 
-            // Store response but don't display yet - wait for voice to start
-            setResponse(responseText);
-            pendingResponse.current = responseText;
+            setResponse(text);
+            pendingResponse.current = text;
             setIsThinking(false);
 
-            // Generate and play the voice - this will trigger onStart which starts the typewriter
-            await generateAndPlay(responseText);
+            await generateAndPlay(text);
         } catch (error) {
-            console.error("Failed to get response:", error);
-            setResponse("The connection to the abyss has been severed. Try again.");
+            console.error("Chat error:", error);
             setIsThinking(false);
         } finally {
             setInputValue("");
         }
-    }, [inputValue, isThinking, voiceState.isLoading, isTalking, generateAndPlay]);
+    }, [inputValue, isBusy, generateAndPlay]);
 
     return (
-        <div className="animate-fade-in animate-delay-2 h-full relative">
-            {/* Main card with Matrix effect */}
-            <div className="card-matrix corner-br p-4 md:p-6 h-full flex flex-col relative overflow-visible">
+        <div className="animate-fade-in animate-delay-2 h-full relative w-full">
+            <div className="card-matrix corner-br p-4 md:p-6 h-full flex flex-col relative overflow-visible w-full">
 
-                {/* Response text overlay - absolute, overlapping the image */}
-                {/* Only show when thinking OR when we have text to display (after typewriter starts) */}
-                {(isThinking || (displayedText && displayedText.length > 0)) && (
-                    <div
-                        className="absolute left-4 right-4 z-[9999]"
-                        style={{ top: '7px' }}
-                    >
+                {/* Response overlay */}
+                <div
+                    className="absolute left-4 right-4 z-[9999] pointer-events-none"
+                    style={{ top: '7px', minHeight: '48px' }}
+                >
+                    {(isThinking || displayedText) && (
                         <div className="bg-[rgba(0,15,0,0.98)] border-2 border-[var(--matrix-green)] px-4 py-3 shadow-[0_0_30px_rgba(0,255,0,0.6)]">
                             {isThinking ? (
                                 <div className="flex items-center justify-center gap-2 text-[var(--matrix-green)] font-mono">
                                     <span className="text-sm">&gt; PROCESSING</span>
                                     <span className="animate-pulse">█</span>
                                 </div>
-                            ) : displayedText ? (
+                            ) : (
                                 <p className="text-[var(--matrix-green)] text-sm leading-relaxed font-mono text-center">
-                                    &quot;{displayedText}&quot;
+                                    {displayedText}
                                     {isTalking && displayedText.length < response.length && (
                                         <span className="animate-pulse">█</span>
                                     )}
                                 </p>
-                            ) : null}
+                            )}
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
-                {/* Werner portrait - fixed height container (original height, no margin top) */}
-                <div className="relative w-full flex-1 min-h-[300px] overflow-hidden mb-4 border-2 border-[var(--matrix-green)]">
-                    {/* Green tint overlay for Matrix effect - fixed size */}
-                    <div className="absolute inset-0 bg-[rgba(0,50,0,0.3)] mix-blend-multiply z-10 pointer-events-none" />
+                {/* Portrait container */}
+                <div className="relative w-full aspect-square md:aspect-auto md:flex-1 md:min-h-[300px] overflow-hidden mb-4 border-2 border-[var(--matrix-green)]">
+                    {/* Green tint */}
+                    <div className="absolute inset-0 bg-[rgba(0,50,0,0.15)] mix-blend-multiply z-10 pointer-events-none" />
 
-                    {/* Static image (shown when not talking) */}
+                    {/* Static image */}
                     <img
                         src="/werner image.jpg"
                         alt="Werner Herzog"
                         className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-200 ${isTalking ? "opacity-0" : "opacity-100"}`}
                         style={{ filter: 'grayscale(100%) brightness(0.9) contrast(1.1) sepia(100%) hue-rotate(70deg) saturate(3)' }}
                     />
-                    {/* Animated GIF (shown when talking) */}
+
+                    {/* Talking GIF */}
                     <img
                         ref={gifRef}
                         src="/werner-talking.gif"
@@ -214,12 +220,12 @@ export default function WernerPortrait() {
                         style={{ filter: 'grayscale(100%) brightness(0.9) contrast(1.1) sepia(100%) hue-rotate(70deg) saturate(3)' }}
                     />
 
-                    {/* Scanline effect */}
+                    {/* Scanlines */}
                     <div className="absolute inset-0 z-20 pointer-events-none" style={{
                         background: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px)'
                     }} />
 
-                    {/* Transaction notification overlay */}
+                    {/* Transaction notification */}
                     {lastTransaction && isTalking && (
                         <div className="absolute top-2 left-2 right-2 z-30 bg-[rgba(0,20,0,0.9)] border border-[var(--matrix-green)] px-3 py-2 text-xs font-mono">
                             <span className="text-[var(--matrix-green-dim)]">&gt; NEW_TX:</span>{" "}
@@ -227,16 +233,15 @@ export default function WernerPortrait() {
                         </div>
                     )}
 
-                    {/* Status indicator */}
+                    {/* Status indicators */}
                     {(voiceState.isLoading || isThinking) && (
                         <div className="absolute bottom-2 right-2 z-30 bg-[rgba(0,20,0,0.9)] border border-[var(--matrix-green)] px-3 py-1">
                             <span className="text-xs text-[var(--matrix-green)] animate-pulse font-mono">
-                                {isThinking ? "THINKING..." : "GENERATING_VOICE..."}
+                                {isThinking ? "THINKING..." : "GENERATING..."}
                             </span>
                         </div>
                     )}
 
-                    {/* Playing indicator */}
                     {isTalking && (
                         <div className="absolute bottom-2 left-2 z-30 bg-[rgba(0,20,0,0.9)] border border-[var(--matrix-green)] px-3 py-1 flex items-center gap-2">
                             <span className="w-2 h-2 bg-[var(--matrix-green)] rounded-full animate-pulse" />
@@ -253,20 +258,19 @@ export default function WernerPortrait() {
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder="Speak to the void..."
                         className="input-matrix w-full text-center"
-                        disabled={isThinking || voiceState.isLoading || isTalking}
+                        disabled={isBusy}
                     />
                     <button
                         type="submit"
                         className="btn-matrix-filled w-full"
-                        disabled={isThinking || !inputValue.trim() || voiceState.isLoading || isTalking}
+                        disabled={isBusy || !inputValue.trim()}
                     >
                         {isThinking ? "Processing..." : voiceState.isLoading ? "Generating..." : isTalking ? "Speaking..." : "Seek Guidance"}
                     </button>
                 </form>
 
-                {/* Observation note */}
                 <p className="text-[var(--text-muted)] text-xs text-center mt-3 font-mono">
-                    // Voice triggers on tx ≥ 7 SOL
+                    // Voice triggers on tx ≥ 2 SOL
                 </p>
             </div>
         </div>
