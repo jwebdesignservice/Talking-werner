@@ -119,12 +119,12 @@ export default function Preloader({ onLoadComplete }: PreloaderProps) {
 
       {/* Title */}
       <h1 
-        className={`font-['Orbitron'] text-3xl md:text-5xl font-bold text-[var(--matrix-green)] mb-2 tracking-wider ${glitchText ? "animate-pulse" : ""}`}
+        className={`font-['Orbitron'] text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--matrix-green)] mb-2 tracking-tight ${glitchText ? "animate-pulse" : ""}`}
         style={{
           textShadow: "0 0 10px rgba(0,255,0,0.8), 0 0 20px rgba(0,255,0,0.5), 0 0 40px rgba(0,255,0,0.3)",
         }}
       >
-        TALKING WERNER
+        EXISTENTIAL FINANCE
       </h1>
 
       {/* Subtitle */}

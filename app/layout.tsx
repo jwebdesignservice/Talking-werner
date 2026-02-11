@@ -21,9 +21,9 @@ const shareTechMono = Share_Tech_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "$WERNER | Enter The Matrix",
-  description: "In the depths of the blockchain, we discover not wealth, but the ecstatic truth of collective madness. The penguin walks toward the void.",
-  keywords: ["Werner Herzog", "Solana", "Penguin", "Matrix", "Crypto", "Meme Coin"],
+  title: "Existential Finance | $WERNER",
+  description: "The AI that talks back. Ask Werner anything. Ape 4+ SOL and Werner sees you, speaks to you. Philosophical degen wisdom from the void.",
+  keywords: ["Werner Herzog", "Existential Finance", "Solana", "Penguin", "Crypto", "Meme Coin", "$WERNER"],
 };
 
 export default function RootLayout({

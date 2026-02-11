@@ -16,21 +16,21 @@
   --matrix-green-dim: #00cc00;
   --matrix-green-muted: #1a3d1a;
   --matrix-green-fade: rgba(0, 255, 0, 0.1);
-  
+
   /* Accent Colors */
   --matrix-cyan: #00ffff;
   --matrix-white: #c0ffc0;
   --matrix-gray: #2a4a2a;
-  
+
   /* Text Colors */
   --text-primary: #00ff00;
   --text-secondary: #00cc00;
   --text-muted: #1a6b1a;
   --text-bright: #00ff41;
-  
+
   /* Glow Effects */
-  --glow-green: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00;
-  --glow-green-soft: 0 0 5px rgba(0, 255, 0, 0.5), 0 0 10px rgba(0, 255, 0, 0.3);
+  --glow-green: 0 0 10px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.5), 0 0 40px rgba(0, 255, 0, 0.3);
+  --glow-green-soft: 0 0 5px rgba(0, 255, 0, 0.4), 0 0 10px rgba(0, 255, 0, 0.2);
   --glow-green-intense: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 40px #00ff00, 0 0 80px #00ff00;
 }
 
@@ -54,8 +54,8 @@ body {
   font-family: var(--font-orbitron), 'Orbitron', sans-serif;
   font-weight: 900;
   color: var(--matrix-green);
-  text-shadow: var(--glow-green);
-  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.5), 0 0 40px rgba(0, 255, 0, 0.3);
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
@@ -83,14 +83,12 @@ body {
    ======================================== */
 
 .card-matrix {
-  background: linear-gradient(
-    135deg,
-    rgba(0, 40, 0, 0.8) 0%,
-    rgba(0, 20, 0, 0.9) 50%,
-    rgba(0, 30, 0, 0.85) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(0, 40, 0, 0.8) 0%,
+      rgba(0, 20, 0, 0.9) 50%,
+      rgba(0, 30, 0, 0.85) 100%);
   border: 2px solid var(--matrix-green);
-  box-shadow: 
+  box-shadow:
     0 0 10px rgba(0, 255, 0, 0.3),
     inset 0 0 30px rgba(0, 255, 0, 0.05);
   position: relative;
@@ -109,8 +107,15 @@ body {
 }
 
 @keyframes scan-line {
-  0% { top: 0; opacity: 1; }
-  100% { top: 100%; opacity: 0; }
+  0% {
+    top: 0;
+    opacity: 1;
+  }
+
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
 }
 
 .card-matrix::after {
@@ -232,45 +237,100 @@ body {
    ======================================== */
 
 @keyframes flicker {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.8; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { 
+
+  0%,
+  100% {
     box-shadow: 0 0 5px rgba(0, 255, 0, 0.3), 0 0 10px rgba(0, 255, 0, 0.2);
   }
-  50% { 
+
+  50% {
     box-shadow: 0 0 10px rgba(0, 255, 0, 0.5), 0 0 20px rgba(0, 255, 0, 0.3), 0 0 30px rgba(0, 255, 0, 0.2);
   }
 }
 
 @keyframes text-flicker {
-  0%, 100% { opacity: 1; text-shadow: var(--glow-green); }
-  92% { opacity: 1; text-shadow: var(--glow-green); }
-  93% { opacity: 0.8; text-shadow: none; }
-  94% { opacity: 1; text-shadow: var(--glow-green); }
-  97% { opacity: 0.9; text-shadow: var(--glow-green-soft); }
-  98% { opacity: 1; text-shadow: var(--glow-green); }
+
+  0%,
+  100% {
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.5), 0 0 40px rgba(0, 255, 0, 0.3);
+  }
+
+  92% {
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.5), 0 0 40px rgba(0, 255, 0, 0.3);
+  }
+
+  93% {
+    opacity: 0.8;
+    text-shadow: none;
+  }
+
+  94% {
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.5), 0 0 40px rgba(0, 255, 0, 0.3);
+  }
+
+  97% {
+    opacity: 0.9;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.4), 0 0 10px rgba(0, 255, 0, 0.2);
+  }
+
+  98% {
+    opacity: 1;
+    text-shadow: var(--glow-green);
+  }
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .animate-fade-in {
   animation: fade-in 0.8s ease-out forwards;
 }
 
-.animate-delay-1 { animation-delay: 0.1s; }
-.animate-delay-2 { animation-delay: 0.2s; }
-.animate-delay-3 { animation-delay: 0.3s; }
+.animate-delay-1 {
+  animation-delay: 0.1s;
+}
+
+.animate-delay-2 {
+  animation-delay: 0.2s;
+}
+
+.animate-delay-3 {
+  animation-delay: 0.3s;
+}
 
 .animate-flicker {
   animation: flicker 4s infinite;
@@ -315,13 +375,11 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.15),
-    rgba(0, 0, 0, 0.15) 1px,
-    transparent 1px,
-    transparent 2px
-  );
+  background: repeating-linear-gradient(0deg,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 2px);
   pointer-events: none;
   z-index: 1000;
 }
