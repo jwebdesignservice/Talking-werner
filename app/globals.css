@@ -422,3 +422,21 @@ body {
   background: var(--matrix-green);
   color: var(--matrix-black);
 }
+
+/* Custom scrollbar for transaction feed */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--matrix-dark);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--matrix-green-dark);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--matrix-green-dim);
+}

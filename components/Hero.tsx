@@ -2,25 +2,36 @@
 
 import ContentPanel from "./ContentPanel";
 import WernerPortrait from "./WernerPortrait";
+import TransactionFeed from "./TransactionFeed";
 
 export default function Hero() {
   return (
     <section className="relative flex items-center justify-center py-6 md:py-10 z-10 min-h-[calc(100vh-120px)]">
       {/* Hero content */}
-      <div className="w-[92%] max-w-[1400px] mx-auto h-full">
-        {/* Main grid - equal 50/50 layout */}
-        <div className="grid md:grid-cols-2 gap-6 md:gap-10 lg:gap-16 xl:gap-24 2xl:gap-[180px] items-stretch h-full">
+      <div className="w-[92%] max-w-[1600px] mx-auto h-full">
+        {/* Main grid - 3 column layout on large screens */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-[1fr_auto_280px] gap-6 md:gap-8 lg:gap-10 items-stretch h-full">
           
-          {/* Left: Content Panel (50%) */}
+          {/* Left: Content Panel */}
           <div className="order-2 md:order-1 h-full">
             <ContentPanel />
           </div>
 
-          {/* Right: Werner Portrait (50%) */}
+          {/* Center: Werner Portrait */}
           <div className="order-1 md:order-2 h-full">
             <WernerPortrait />
           </div>
 
+          {/* Right: Transaction Feed (hidden on mobile, visible on lg+) */}
+          <div className="order-3 hidden lg:block h-full">
+            <TransactionFeed />
+          </div>
+
+        </div>
+
+        {/* Mobile Transaction Feed (shown below on smaller screens) */}
+        <div className="mt-6 lg:hidden">
+          <TransactionFeed />
         </div>
       </div>
 
