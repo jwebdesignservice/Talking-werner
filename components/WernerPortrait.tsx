@@ -243,7 +243,7 @@ export default function WernerPortrait() {
 
                 {/* Observation note */}
                 <p className="text-[var(--text-muted)] text-xs text-center mt-3 font-mono">
-                    // Voice triggers on tx ≥ 4 SOL
+                    // Voice triggers on tx ≥ 7 SOL
                 </p>
             </div>
         </div>
