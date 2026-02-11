@@ -1,0 +1,357 @@
+@import "tailwindcss";
+
+/* ========================================
+   MATRIX / NEO CYBERPUNK THEME
+   Google Fonts loaded via layout.tsx
+   ======================================== */
+
+:root {
+  /* Matrix Green Palette */
+  --matrix-black: #0a0a0a;
+  --matrix-dark: #0d1a0d;
+  --matrix-green-dark: #003300;
+  --matrix-green: #00ff00;
+  --matrix-green-bright: #00ff41;
+  --matrix-green-glow: #39ff14;
+  --matrix-green-dim: #00cc00;
+  --matrix-green-muted: #1a3d1a;
+  --matrix-green-fade: rgba(0, 255, 0, 0.1);
+  
+  /* Accent Colors */
+  --matrix-cyan: #00ffff;
+  --matrix-white: #c0ffc0;
+  --matrix-gray: #2a4a2a;
+  
+  /* Text Colors */
+  --text-primary: #00ff00;
+  --text-secondary: #00cc00;
+  --text-muted: #1a6b1a;
+  --text-bright: #00ff41;
+  
+  /* Glow Effects */
+  --glow-green: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00;
+  --glow-green-soft: 0 0 5px rgba(0, 255, 0, 0.5), 0 0 10px rgba(0, 255, 0, 0.3);
+  --glow-green-intense: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 40px #00ff00, 0 0 80px #00ff00;
+}
+
+/* Base Styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--matrix-black);
+  color: var(--text-primary);
+  font-family: var(--font-rajdhani), 'Rajdhani', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ========================================
+   TYPOGRAPHY
+   ======================================== */
+
+.headline-matrix {
+  font-family: var(--font-orbitron), 'Orbitron', sans-serif;
+  font-weight: 900;
+  color: var(--matrix-green);
+  text-shadow: var(--glow-green);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.text-glow {
+  text-shadow: var(--glow-green-soft);
+}
+
+.text-glow-intense {
+  text-shadow: var(--glow-green);
+}
+
+.section-label {
+  font-family: var(--font-share-tech), 'Share Tech Mono', monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--text-muted);
+  border: 1px solid var(--matrix-green-muted);
+  padding: 0.25rem 0.75rem;
+  display: inline-block;
+}
+
+/* ========================================
+   MATRIX CARD STYLES
+   ======================================== */
+
+.card-matrix {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 40, 0, 0.8) 0%,
+    rgba(0, 20, 0, 0.9) 50%,
+    rgba(0, 30, 0, 0.85) 100%
+  );
+  border: 2px solid var(--matrix-green);
+  box-shadow: 
+    0 0 10px rgba(0, 255, 0, 0.3),
+    inset 0 0 30px rgba(0, 255, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-matrix::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--matrix-green), transparent);
+  animation: scan-line 3s linear infinite;
+}
+
+@keyframes scan-line {
+  0% { top: 0; opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.card-matrix::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-top: 2px solid var(--matrix-green-bright);
+  border-left: 2px solid var(--matrix-green-bright);
+}
+
+.corner-br::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  border-bottom: 2px solid var(--matrix-green-bright);
+  border-right: 2px solid var(--matrix-green-bright);
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+
+.btn-matrix {
+  font-family: var(--font-orbitron), 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.875rem 2rem;
+  background: transparent;
+  border: 2px solid var(--matrix-green);
+  color: var(--matrix-green);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: var(--glow-green-soft);
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+.btn-matrix:hover {
+  background: var(--matrix-green);
+  color: var(--matrix-black);
+  text-shadow: none;
+  box-shadow: var(--glow-green);
+}
+
+.btn-matrix:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-matrix-filled {
+  font-family: var(--font-orbitron), 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.875rem 2rem;
+  background: var(--matrix-green);
+  border: 2px solid var(--matrix-green-bright);
+  color: var(--matrix-black);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--glow-green-soft);
+}
+
+.btn-matrix-filled:hover {
+  background: var(--matrix-green-bright);
+  box-shadow: var(--glow-green);
+}
+
+.btn-matrix-filled:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   INPUT STYLES
+   ======================================== */
+
+.input-matrix {
+  font-family: var(--font-share-tech), 'Share Tech Mono', monospace;
+  background: rgba(0, 20, 0, 0.8);
+  border: 2px solid var(--matrix-green-muted);
+  color: var(--matrix-green);
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.input-matrix::placeholder {
+  color: var(--text-muted);
+}
+
+.input-matrix:focus {
+  outline: none;
+  border-color: var(--matrix-green);
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.3), 0 0 10px rgba(0, 255, 0, 0.2);
+  }
+  50% { 
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5), 0 0 20px rgba(0, 255, 0, 0.3), 0 0 30px rgba(0, 255, 0, 0.2);
+  }
+}
+
+@keyframes text-flicker {
+  0%, 100% { opacity: 1; text-shadow: var(--glow-green); }
+  92% { opacity: 1; text-shadow: var(--glow-green); }
+  93% { opacity: 0.8; text-shadow: none; }
+  94% { opacity: 1; text-shadow: var(--glow-green); }
+  97% { opacity: 0.9; text-shadow: var(--glow-green-soft); }
+  98% { opacity: 1; text-shadow: var(--glow-green); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+.animate-delay-1 { animation-delay: 0.1s; }
+.animate-delay-2 { animation-delay: 0.2s; }
+.animate-delay-3 { animation-delay: 0.3s; }
+
+.animate-flicker {
+  animation: flicker 4s infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+.animate-text-flicker {
+  animation: text-flicker 5s infinite;
+}
+
+/* ========================================
+   MARQUEE BANNER
+   ======================================== */
+
+.marquee-matrix {
+  background: var(--matrix-green);
+  color: var(--matrix-black);
+  font-family: var(--font-orbitron), 'Orbitron', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee-content {
+  display: inline-block;
+  animation: marquee 30s linear infinite;
+}
+
+/* ========================================
+   SCANLINES
+   ======================================== */
+
+.scanlines::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* ========================================
+   SCROLLBAR
+   ======================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--matrix-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--matrix-green-muted);
+  border: 1px solid var(--matrix-green);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--matrix-green);
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+.border-glow {
+  border: 1px solid var(--matrix-green);
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.bg-matrix-gradient {
+  background: linear-gradient(180deg, var(--matrix-dark) 0%, var(--matrix-black) 100%);
+}
+
+::selection {
+  background: var(--matrix-green);
+  color: var(--matrix-black);
+}
