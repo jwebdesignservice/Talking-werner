@@ -10,11 +10,27 @@ import MatrixRain from "@/components/MatrixRain";
 export default function Home() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[var(--matrix-black)]">
+      {/* Penguin background image */}
+      <div 
+        className="fixed inset-0 z-0"
+        style={{
+          backgroundImage: "url('/Penguin bg.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+      
+      {/* Dark overlay on top of background */}
+      <div className="fixed inset-0 z-[1] bg-[rgba(0,10,0,0.85)]" />
+      
       {/* Matrix digital rain background */}
-      <MatrixRain />
+      <div className="relative z-[2]">
+        <MatrixRain />
+      </div>
       
       {/* Scanlines overlay */}
-      <div className="scanlines" />
+      <div className="scanlines z-[3]" />
 
       {/* Content sections */}
       <div className="relative z-10">

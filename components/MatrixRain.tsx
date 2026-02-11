@@ -36,8 +36,8 @@ export default function MatrixRain() {
 
     // Draw function
     const draw = () => {
-      // Semi-transparent black to create fade effect
-      ctx.fillStyle = "rgba(0, 10, 0, 0.05)";
+      // Clear with transparent fade to let background show through
+      ctx.fillStyle = "rgba(0, 10, 0, 0.03)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Green text
@@ -79,7 +79,7 @@ export default function MatrixRain() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 z-0 pointer-events-none opacity-30"
+      className="fixed inset-0 pointer-events-none opacity-40"
     />
   );
 }
