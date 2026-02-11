@@ -13,7 +13,7 @@ interface Transaction {
 export default function TransactionFeed() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [latestTx, setLatestTx] = useState<Transaction | null>(null);
-    
+
     // Track processed event fingerprints to prevent duplicates
     const processedEventsRef = useRef<Set<string>>(new Set());
 
@@ -79,7 +79,7 @@ export default function TransactionFeed() {
                     Live Buys
                 </h3>
                 <span className="text-[var(--matrix-green-dim)] text-xs font-mono ml-auto">
-                    2+ SOL
+                    3.5+ SOL
                 </span>
             </div>
 
@@ -91,7 +91,7 @@ export default function TransactionFeed() {
                             &gt; AWAITING_TRANSACTIONS...
                         </p>
                         <p className="text-[var(--text-muted)] text-[10px] font-mono mt-1">
-                            Monitoring for 2+ SOL buys
+                            Monitoring for 3.5+ SOL buys
                         </p>
                     </div>
                 ) : (

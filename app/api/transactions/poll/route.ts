@@ -15,7 +15,7 @@ let lastProcessedTime = 0;
 const COOLDOWN_MS = 10000; // 10 second cooldown between processing
 
 // Minimum SOL amount to trigger Werner
-const MIN_SOL_AMOUNT = 2;
+const MIN_SOL_AMOUNT = 3.5;
 
 // Clean quotes from text for voice
 function cleanTextForVoice(text: string): string {

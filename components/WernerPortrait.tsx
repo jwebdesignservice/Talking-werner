@@ -45,7 +45,7 @@ export default function WernerPortrait() {
                 } else {
                     if (typewriterRef.current) clearInterval(typewriterRef.current);
                 }
-            }, 50);
+            }, 70);
         }
 
         return () => {
@@ -270,7 +270,7 @@ export default function WernerPortrait() {
                 </form>
 
                 <p className="text-[var(--text-muted)] text-xs text-center mt-3 font-mono">
-                    // Voice triggers on tx ≥ 2 SOL
+                    // Voice triggers on tx ≥ 3.5 SOL
                 </p>
             </div>
         </div>
