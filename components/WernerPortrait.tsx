@@ -1,15 +1,56 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useVoicePlayer, useWernerEvents, WernerEventData } from "@/hooks/useVoicePlayer";
 import { useTransactionPoller } from "@/hooks/useTransactionPoller";
 
 export default function WernerPortrait() {
     const [inputValue, setInputValue] = useState("");
     const [response, setResponse] = useState("");
+    const [displayedText, setDisplayedText] = useState("");
     const [isThinking, setIsThinking] = useState(false);
     const [isTalking, setIsTalking] = useState(false);
     const [lastTransaction, setLastTransaction] = useState<{ amount: number; wallet: string } | null>(null);
+
+    // Typewriter effect for response text
+    const typewriterRef = useRef<NodeJS.Timeout | null>(null);
+    const hasFinishedTyping = useRef(false);
+    const pendingResponse = useRef<string>("");
+
+    useEffect(() => {
+        // When isTalking starts, begin the typewriter animation
+        if (isTalking && pendingResponse.current) {
+            // Clear any existing interval
+            if (typewriterRef.current) {
+                clearInterval(typewriterRef.current);
+            }
+
+            const textToType = pendingResponse.current;
+            setDisplayedText(""); // Start empty
+            hasFinishedTyping.current = false;
+
+            let currentIndex = 0;
+            typewriterRef.current = setInterval(() => {
+                if (currentIndex < textToType.length) {
+                    setDisplayedText(textToType.slice(0, currentIndex + 1));
+                    currentIndex++;
+                } else {
+                    if (typewriterRef.current) {
+                        clearInterval(typewriterRef.current);
+                        typewriterRef.current = null;
+                    }
+                    hasFinishedTyping.current = true;
+                }
+            }, 50);
+        }
+
+        return () => {
+            if (typewriterRef.current) {
+                clearInterval(typewriterRef.current);
+                typewriterRef.current = null;
+            }
+        };
+    }, [isTalking]);
 
     // Use ref to track GIF element for animation reset
     const gifRef = useRef<HTMLImageElement>(null);
@@ -68,6 +109,8 @@ export default function WernerPortrait() {
 
         setIsThinking(true);
         setResponse("");
+        setDisplayedText("");
+        pendingResponse.current = "";
         setIsTalking(false);
 
         try {
@@ -81,10 +124,12 @@ export default function WernerPortrait() {
             const data = await chatResponse.json();
             const responseText = data.text || "The void offers no response today.";
 
+            // Store response but don't display yet - wait for voice to start
             setResponse(responseText);
+            pendingResponse.current = responseText;
             setIsThinking(false);
 
-            // Generate and play the voice - this will trigger onStart/onEnd callbacks
+            // Generate and play the voice - this will trigger onStart which starts the typewriter
             await generateAndPlay(responseText);
         } catch (error) {
             console.error("Failed to get response:", error);
@@ -96,33 +141,36 @@ export default function WernerPortrait() {
     }, [inputValue, isThinking, generateAndPlay]);
 
     return (
-        <div className="animate-fade-in animate-delay-2 h-full">
+        <div className="animate-fade-in animate-delay-2 h-full relative">
             {/* Main card with Matrix effect */}
-            <div className="card-matrix corner-br p-4 md:p-6 h-full flex flex-col relative">
+            <div className="card-matrix corner-br p-4 md:p-6 h-full flex flex-col relative overflow-visible">
 
-                {/* Speech bubble response - positioned above the portrait */}
-                {(isThinking || response) && (
-                    <div className="absolute -top-4 left-4 right-4 z-40 transform -translate-y-full">
-                        <div className="bg-[rgba(0,20,0,0.95)] border-2 border-[var(--matrix-green)] p-4 relative">
+                {/* Response text overlay - absolute, overlapping the image */}
+                {/* Only show when thinking OR when we have text to display (after typewriter starts) */}
+                {(isThinking || (displayedText && displayedText.length > 0)) && (
+                    <div
+                        className="absolute left-4 right-4 z-[9999]"
+                        style={{ top: '7px' }}
+                    >
+                        <div className="bg-[rgba(0,15,0,0.98)] border-2 border-[var(--matrix-green)] px-4 py-3 shadow-[0_0_30px_rgba(0,255,0,0.6)]">
                             {isThinking ? (
-                                <div className="flex items-center justify-center gap-3 text-[var(--text-muted)] font-mono">
+                                <div className="flex items-center justify-center gap-2 text-[var(--matrix-green)] font-mono">
                                     <span className="text-sm">&gt; PROCESSING</span>
-                                    <span className="animate-pulse">_</span>
+                                    <span className="animate-pulse">█</span>
                                 </div>
-                            ) : response ? (
-                                <p className={`text-[var(--matrix-green)] text-sm leading-relaxed font-mono ${isTalking ? "animate-pulse" : ""}`}>
-                                    &gt; &quot;{response}&quot;
+                            ) : displayedText ? (
+                                <p className="text-[var(--matrix-green)] text-sm leading-relaxed font-mono text-center">
+                                    &quot;{displayedText}&quot;
+                                    {isTalking && displayedText.length < response.length && (
+                                        <span className="animate-pulse">█</span>
+                                    )}
                                 </p>
                             ) : null}
-                            {/* Speech bubble arrow */}
-                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                                <div className="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-[var(--matrix-green)]" />
-                            </div>
                         </div>
                     </div>
                 )}
 
-                {/* Werner portrait - fixed height container */}
+                {/* Werner portrait - fixed height container (original height, no margin top) */}
                 <div className="relative w-full flex-1 min-h-[300px] overflow-hidden mb-4 border-2 border-[var(--matrix-green)]">
                     {/* Green tint overlay for Matrix effect - fixed size */}
                     <div className="absolute inset-0 bg-[rgba(0,50,0,0.3)] mix-blend-multiply z-10 pointer-events-none" />

@@ -90,12 +90,12 @@ export default function ContentPanel() {
 
       {/* CTA Buttons */}
       <div className="flex flex-wrap justify-center gap-4">
-        <button className="btn-matrix-filled">
-          I&apos;m Locked In
-        </button>
-        <button className="btn-matrix">
-          Read the Manifesto
-        </button>
+        <a href="#about" className="btn-matrix-filled">
+          Enter the Void
+        </a>
+        <a href="#tokenomics" className="btn-matrix">
+          Read the Docs
+        </a>
       </div>
     </div>
   );

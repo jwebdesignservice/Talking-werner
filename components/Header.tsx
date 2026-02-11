@@ -14,12 +14,13 @@ export default function Header() {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link 
-              href="#" 
-              className="font-['Share_Tech_Mono'] text-sm uppercase tracking-widest text-[var(--matrix-green)] hover:text-[var(--matrix-green-bright)] transition-colors text-glow"
+            <a 
+              href="#top" 
+              onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              className="font-['Share_Tech_Mono'] text-sm uppercase tracking-widest text-[var(--matrix-green)] hover:text-[var(--matrix-green-bright)] transition-colors text-glow cursor-pointer"
             >
               Home
-            </Link>
+            </a>
             <Link 
               href="#about" 
               className="font-['Share_Tech_Mono'] text-sm uppercase tracking-widest text-[var(--matrix-green)] hover:text-[var(--matrix-green-bright)] transition-colors text-glow"
@@ -41,9 +42,9 @@ export default function Header() {
           </nav>
 
           {/* CTA Button */}
-          <button className="btn-matrix text-xs px-4 py-2">
+          <a href="#tokenomics" className="btn-matrix text-xs px-4 py-2">
             Buy $Werner
-          </button>
+          </a>
         </div>
       </div>
     </header>
